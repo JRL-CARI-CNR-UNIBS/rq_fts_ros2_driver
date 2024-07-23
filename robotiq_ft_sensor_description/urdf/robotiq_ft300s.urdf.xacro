@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <xacro:macro name="robotiq_ft300s" params="parent tf_prefix *origin">
+
+        <!-- mount the fts to the robot -->
+        <joint name="${tf_prefix}ft300s_fix" type="fixed">
+            <xacro:insert_block name="origin" />
+            <parent link="${tf_prefix}${parent}" />
+            <child link="${tf_prefix}ft300s_mounting_plate" />
+        </joint>
+
+       
+        <!-- Link representing the FT300s force-torque sensor -->
+        <link name="${tf_prefix}ft300s_sensor">
+            <inertial>
+                <origin xyz="${-6 / 1000} 0 ${13.5 / 1000}" rpy="0 0 0"/>
+                <mass value="0.410"/>
+                <inertia ixx="${316 / 1000000}" ixy="${-1 / 1000000}" ixz="${-2 / 1000000}" iyy="${611 / 1000000}" iyx="${-1 / 1000000}" iyz="${0 / 1000000}" izz="${671 / 1000000}" izx="${-2 / 1000000}" izy="${0 / 1000000}"/>
+            </inertial>
+            <visual>
+                <origin xyz="0 0 0" rpy="0 0 0" />
+                <geometry>
+                    <mesh filename="package://robotiq_ft_sensor_description/meshes/visual/robotiq_ft300s.stl" scale="0.001 0.001 0.001"/>
+                </geometry>
+                <material name="Robotiq-Black">
+                    <color rgba="0.2 0.2 0.2 1.0"/>
+                </material>
+            </visual>
+            <collision>
+                <origin xyz="0 0 0" rpy="0 0 0" />
+                <geometry>
+                    <mesh filename="package://robotiq_ft_sensor_description/meshes/collision/robotiq_ft300s.STL" scale="0.001 0.001 0.001"/>
+                </geometry>
+            </collision>
+        </link>
+
+        <link name="${tf_prefix}ft300s_mounting_plate"/>
+        <joint name="${tf_prefix}ft300s_mounting_plate" type="fixed">
+            <origin xyz="0 0 0.0415" rpy="0 ${pi} 0"/> 
+            <parent link="${tf_prefix}ft300s_mounting_plate" />
+            <child link="${tf_prefix}ft300s_sensor" />
+        </joint>
+
+        <joint name="${tf_prefix}measurment_joint" type="fixed">
+            <origin xyz="0 0 0" rpy="0 ${pi} ${-pi/2}" />
+            <parent link="${tf_prefix}ft300s_sensor" />
+            <child link="${tf_prefix}robotiq_ft_frame_id" />
+        </joint>
+
+        <link name="${tf_prefix}robotiq_ft_frame_id"/>
+
+    </xacro:macro>
+</robot>
