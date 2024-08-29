@@ -58,6 +58,9 @@ class RobotiqFTSensorHardware : public hardware_interface::SensorInterface
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(RobotiqFTSensorHardware);
 
+  virtual ~RobotiqFTSensorHardware() override;
+  // hardware_interface::CallbackReturn on_shutdown(const rclcpp_lifecycle::State& /*previous_state*/) override;
+
   hardware_interface::CallbackReturn on_init(const hardware_interface::HardwareInfo& info) override;
 
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
@@ -81,6 +84,7 @@ private:
   std::unique_ptr<std::thread> node_thread_;
   rclcpp::executors::SingleThreadedExecutor executor_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr srv_zero_fts_;
+  rclcpp::Subscription<geometry_msgs::msg::WrenchStamped>::SharedPtr fake_measure_sub_;
   rclcpp::Logger logger_{ rclcpp::get_logger("RobotiqFTSensorHardware") };
   // urdf parameters
   bool use_fake_mode_;

@@ -183,6 +183,25 @@ RobotiqFTSensorHardware::on_activate(const rclcpp_lifecycle::State& /*previous_s
   timer_ = async_node_->create_wall_timer(std::chrono::milliseconds(read_rate_),
                                           std::bind(&RobotiqFTSensorHardware::read_background, this));
 
+  if(use_fake_mode_)
+  {
+    fake_measure_sub_ = async_node_->create_subscription<geometry_msgs::msg::WrenchStamped>(
+        "/io_and_status_controller/fake_wrench",
+        rclcpp::QoS(5).durability_volatile(),
+        [this](const geometry_msgs::msg::WrenchStamped& msg){
+          std::array<double, 6> sensor_reading_background{};
+          sensor_reading_background[0] = msg.wrench.force.x;
+          sensor_reading_background[1] = msg.wrench.force.y;
+          sensor_reading_background[2] = msg.wrench.force.z;
+          sensor_reading_background[3] = msg.wrench.torque.x;
+          sensor_reading_background[4] = msg.wrench.torque.y;
+          sensor_reading_background[5] = msg.wrench.torque.y;
+
+          this->sensor_readings_.writeFromNonRT(sensor_reading_background);
+          }
+        );
+  }
+
   node_thread_ = std::make_unique<std::thread>([&]() {
     executor_.add_node(async_node_);
     executor_.spin();
@@ -202,6 +221,7 @@ RobotiqFTSensorHardware::on_deactivate(const rclcpp_lifecycle::State& /*previous
   node_thread_->join();
   node_thread_.reset();
   srv_zero_fts_.reset();
+  if(use_fake_mode_) fake_measure_sub_.reset();
   async_node_.reset();
   //
   // TODO DEACTIVATE RQ SENSOR
@@ -213,19 +233,21 @@ RobotiqFTSensorHardware::on_deactivate(const rclcpp_lifecycle::State& /*previous
 hardware_interface::return_type RobotiqFTSensorHardware::read(const rclcpp::Time& /*time*/,
                                                               const rclcpp::Duration& /*period*/)
 {
-  if (use_fake_mode_)
-  {
-    hw_sensor_states_[0] = 0.0;
-    hw_sensor_states_[1] = 0.0;
-    hw_sensor_states_[2] = 0.0;
-    hw_sensor_states_[3] = 0.0;
-    hw_sensor_states_[4] = 0.0;
-    hw_sensor_states_[5] = 0.0;
-  }
-  else
-  {
-    hw_sensor_states_ = *(sensor_readings_.readFromRT());
-  }
+  // if (use_fake_mode_)
+  // {
+  //   hw_sensor_states_[0] = 0.0;
+  //   hw_sensor_states_[1] = 0.0;
+  //   hw_sensor_states_[2] = 0.0;
+  //   hw_sensor_states_[3] = 0.0;
+  //   hw_sensor_states_[4] = 0.0;
+  //   hw_sensor_states_[5] = 0.0;
+  // }
+  // else
+  // {
+  //   hw_sensor_states_ = *(sensor_readings_.readFromRT());
+  // }
+
+  hw_sensor_states_ = *(sensor_readings_.readFromRT());
 
   return hardware_interface::return_type::OK;
 }
