@@ -37,8 +37,18 @@
 
 namespace robotiq_ft_sensor_hardware
 {
+// on_deactivate() is not called when controller manager is shutdown with Ctrl+C
+// https://github.com/ros-controls/ros2_control/issues/472
+  RobotiqFTSensorHardware::~RobotiqFTSensorHardware(){
+  if(node_thread_ != nullptr)
+  {
+    RobotiqFTSensorHardware::on_deactivate(rclcpp_lifecycle::State());
+  }
+}
+
 hardware_interface::CallbackReturn RobotiqFTSensorHardware::on_init(const hardware_interface::HardwareInfo& info)
 {
+
   if (hardware_interface::SensorInterface::on_init(info) != hardware_interface::CallbackReturn::SUCCESS)
   {
     return CallbackReturn::ERROR;
