@@ -195,7 +195,7 @@ RobotiqFTSensorHardware::on_activate(const rclcpp_lifecycle::State& /*previous_s
           sensor_reading_background[2] = msg.wrench.force.z;
           sensor_reading_background[3] = msg.wrench.torque.x;
           sensor_reading_background[4] = msg.wrench.torque.y;
-          sensor_reading_background[5] = msg.wrench.torque.y;
+          sensor_reading_background[5] = msg.wrench.torque.z;
 
           this->sensor_readings_.writeFromNonRT(sensor_reading_background);
           }
